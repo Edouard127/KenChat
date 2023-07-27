@@ -1,5 +1,7 @@
 package com.lambda.modules
 
+import baritone.api.event.events.WorldEvent
+import baritone.api.utils.Helper.mc
 import com.lambda.KenChatPlugin
 import com.lambda.client.event.SafeClientEvent
 import com.lambda.client.event.events.ConnectionEvent
@@ -18,6 +20,7 @@ import net.minecraft.client.gui.GuiNewChat
 import net.minecraft.network.login.server.SPacketEncryptionRequest
 import net.minecraft.util.text.TextComponentString
 import net.minecraft.util.text.TextFormatting
+import net.minecraftforge.event.entity.EntityJoinWorldEvent
 import java.util.*
 import kotlin.concurrent.thread
 
@@ -30,7 +33,6 @@ internal object KenChat : PluginModule(
     private val address by setting("Address", "localhost")
     private val port by setting("Port", "42069")
 
-    val chat = GuiNewChat(mc)
     var authDigest: String = ""
 
     var socket: TCPSocket? = null
@@ -66,9 +68,7 @@ internal object KenChat : PluginModule(
 }
 
 private suspend fun handleKeyRequest(socket: TCPSocket, packet: Packet) {
-    runSafe {
-        socket.writePacket(Packet.marshal(SPacketKeyResponse, player.name, player.uniqueID, KenChat.authDigest))
-    }
+    socket.writePacket(Packet.marshal(SPacketKeyResponse, mc.session.profile.name, mc.session.profile.id, KenChat.authDigest))
 }
 
 private suspend fun handleSystemMessage(socket: TCPSocket, packet: Packet) {

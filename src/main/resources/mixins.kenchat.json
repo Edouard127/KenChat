@@ -4,9 +4,7 @@
     "package": "com.lambda.mixins",
     "refmap": "mixins.kenchat.refmap.json",
     "client": [
-        "ChatMixinMP",
         "ChatMixinSP",
-        "NormalChatListenerMixin",
         "NetHandlerLoginServerMixin"
     ]
 }
