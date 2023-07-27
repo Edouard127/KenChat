@@ -1,11 +1,11 @@
 {
-  "name": "ExamplePlugin",
+  "name": "KenChat",
   "version": "${version}",
-  "description": "Example implementation of a plugin for Lambda.",
-  "url": "https://github.com/lambda-client/ExamplePlugin",
-  "authors": [ "me", "you" ],
-  "main_class": "com.lambda.ExamplePlugin",
+  "description": "Parallel chat system",
+  "url": "https://github.com/Edouard127/KenChat",
+  "authors": [ "Kamigen" ],
+  "main_class": "com.lambda.KenChatPlugin",
   "min_api_version": "3.3",
-  "mixins": [ "mixins.ExamplePlugin.json" ],
+  "mixins": [ "mixins.kenchat.json" ],
   "required_plugins": []
 }

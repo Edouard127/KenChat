@@ -1,0 +1,12 @@
+{
+    "required": true,
+    "compatibilityLevel": "JAVA_8",
+    "package": "com.lambda.mixins",
+    "refmap": "mixins.kenchat.refmap.json",
+    "client": [
+        "ChatMixinMP",
+        "ChatMixinSP",
+        "NormalChatListenerMixin",
+        "NetHandlerLoginServerMixin"
+    ]
+}

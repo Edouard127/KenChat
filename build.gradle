@@ -5,6 +5,7 @@ buildscript {
     repositories {
         maven { url = 'https://maven.minecraftforge.net/' }
         maven { url = 'https://repo.spongepowered.org/maven/' }
+        jcenter()
     }
 
     dependencies {
@@ -129,13 +130,18 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
 
-    // Add your dependencies below
-    // jarLibs 'com.lambda:example:1.0.0'
+
+    jarLibs "io.ktor:ktor-server-core:$ktor_version"
+    jarLibs "io.ktor:ktor-server-netty:$ktor_version"
+    jarLibs "io.ktor:ktor-network:$ktor_version"
+
+    // Add everything in jarLibs to implementation (compile)
+    implementation configurations.jarLibs
 }
 
 mixin {
     defaultObfuscationEnv 'searge'
-    add sourceSets.main, 'mixins.ExamplePlugin.refmap.json'
+    add sourceSets.main, 'mixins.kenchat.refmap.json'
 }
 
 processResources {
@@ -156,7 +162,7 @@ jar.finalizedBy('reobfJar')
 
 shadowJar {
     archiveClassifier.set('')
-    configurations = []
+    configurations = [project.configurations.jarLibs]
     relocate 'kotlin', 'com.lambda.shadow.kotlin'
     relocate 'kotlinx', 'com.lambda.shadow.kotlinx'
     finalizedBy 'configureReobfTaskForReobfShadowJar', 'reobfShadowJar'
