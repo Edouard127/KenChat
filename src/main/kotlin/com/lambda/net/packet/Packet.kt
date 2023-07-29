@@ -3,7 +3,7 @@ package com.lambda.net.packet
 import io.ktor.utils.io.*
 import java.io.InputStream
 
-class Packet(var id: Int, var data: ByteArray, var inputStream: InputStream? = null) {
+class Packet(var id: Int, private var data: ByteArray, var inputStream: InputStream) {
     suspend fun pack(writer: ByteWriteChannel) {
         // Write the packet size
         writer.writeInt(4 + data.size)
@@ -13,6 +13,9 @@ class Packet(var id: Int, var data: ByteArray, var inputStream: InputStream? = n
 
         // Write the packet data
         writer.writeFully(data)
+
+        // Flush the writer
+        writer.flush()
     }
 
     suspend fun unpack(reader: ByteReadChannel) {
@@ -46,7 +49,7 @@ class Packet(var id: Int, var data: ByteArray, var inputStream: InputStream? = n
         }
 
         fun nil(): Packet {
-            return Packet(0, ByteArray(0))
+            return Packet(0, byteArrayOf(), byteArrayOf().inputStream())
         }
     }
 }

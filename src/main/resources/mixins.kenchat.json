@@ -5,6 +5,6 @@
     "refmap": "mixins.kenchat.refmap.json",
     "client": [
         "ChatMixinSP",
-        "NetHandlerLoginServerMixin"
+        "YggdrasilMinecraftSessionServiceMixin"
     ]
 }

@@ -4,7 +4,6 @@ import com.lambda.commands.KenChatCommand;
 import com.lambda.modules.KenChat;
 import com.lambda.net.packet.Packet;
 import net.minecraft.client.entity.EntityPlayerSP;
-import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -18,13 +17,17 @@ import static com.lambda.net.packet.PacketIdKt.SPacketPlayerMessage;
 public class ChatMixinSP {
     @Inject(at = @At("HEAD"), method = "sendChatMessage", cancellable = true)
     public void sendMessage(String message, CallbackInfo ci) {
-        System.out.println("Sending message: " + message);
-
-        if (!KenChatCommand.INSTANCE.getEnabled()) {
+        if (message.startsWith("/")) {
             return;
         }
 
-        Objects.requireNonNull(KenChat.INSTANCE.getSocket()).javaWrite(Packet.Companion.marshal(SPacketPlayerMessage, new TextComponentString(message)));
-        ci.cancel();
+        if (KenChat.INSTANCE.getSocket() == null || !KenChat.INSTANCE.getSocket().isConnected()) {
+            return;
+        }
+
+        if (KenChatCommand.INSTANCE.getEnabled()) {
+            Objects.requireNonNull(KenChat.INSTANCE.getSocket()).javaWrite(Packet.Companion.marshal(SPacketPlayerMessage, new TextComponentString(message)));
+            ci.cancel();
+        }
     }
 }

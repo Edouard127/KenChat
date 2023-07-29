@@ -11,7 +11,7 @@ class Builder {
         }
     }
 
-    fun packet(id: kotlin.Int): Packet {
-        return Packet(id, buf.toByteArray())
+    fun packet(id: Int): Packet {
+        return Packet(id, buf.toByteArray(), buf.toByteArray().inputStream())
     }
 }

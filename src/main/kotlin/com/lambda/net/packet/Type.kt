@@ -85,13 +85,15 @@ fun Int.writeTo(outputStream: OutputStream): Int {
     return v.size
 }
 
+@OptIn(ExperimentalUnsignedTypes::class)
 fun readIntFrom(inputStream: InputStream): Int {
     val bs = ByteArray(4)
     inputStream.read(bs)
-    return (((bs[0].toInt() shl 24)) or
-        ((bs[1].toInt() shl 16)) or
-        ((bs[2].toInt() shl 8)) or
-        (bs[3].toInt()))
+    val ubs = bs.map { it.toUByte() }.toUByteArray()
+    return (((ubs[0].toInt() shl 24)) or
+        ((ubs[1].toInt() shl 16)) or
+        ((ubs[2].toInt() shl 8)) or
+        (ubs[3].toInt()))
 }
 
 fun ByteArray.writeTo(outputStream: OutputStream): Int {
@@ -205,16 +207,18 @@ fun readLongFrom(inputStream: InputStream): Long {
 }
 
 fun UUID.writeTo(outputStream: OutputStream): Int {
-    val v = this.toString().toByteArray(Charsets.UTF_8)
-    outputStream.write(v)
-    return v.size
+    val str = this.toString()
+    val bs = str.toByteArray(Charsets.UTF_8)
+    bs.writeTo(outputStream)
+    return 4 + bs.size
 }
 
 fun readUUIDFrom(inputStream: InputStream): UUID {
-    val bs = ByteArray(inputStream.available())
+    val len = readIntFrom(inputStream)
+    val bs = ByteArray(len)
     val n = inputStream.read(bs)
     if (n != -1) {
-        return UUID.fromString(String(bs, Charsets.UTF_8))
+        return UUID.nameUUIDFromBytes(bs)
     } else {
         throw EOFException("End of stream reached")
     }
@@ -232,6 +236,7 @@ fun ITextComponent.fromString(str: String): ITextComponent {
 
 fun readTextComponentFrom(inputStream: InputStream): ITextComponent {
     val size = readIntFrom(inputStream)
+    println("size: $size")
     val bs = ByteArray(size)
     val n = inputStream.read(bs)
     if (n != -1) {

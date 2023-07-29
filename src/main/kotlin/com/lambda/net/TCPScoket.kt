@@ -19,7 +19,7 @@ class TCPSocket(private val address: String = "localhost", private val port: Int
         val manager = SelectorManager(Dispatchers.IO)
         socket = aSocket(manager).tcp().connect(address, port)
         recvChannel = socket!!.openReadChannel()
-        sendChannel = socket!!.openWriteChannel(autoFlush = true)
+        sendChannel = socket!!.openWriteChannel()
 
         while (true) {
             packet.unpack(recvChannel!!)
