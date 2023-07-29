@@ -14,10 +14,6 @@ object KenChatPlayerInfo : ClientCommand(
     init {
         string("uuid") { uuid ->
             execute {
-                if (KenChat.socket?.isConnected() == false || (KenChat.socket?.isConnected() == false && KenChatCommand.enabled)) {
-                    MessageSendHelper.sendChatMessage("You are trying to send a message to KenChat, but you are not connected. Refer to the command ;chat")
-                    return@execute
-                }
                 KenChat.socket?.writePacket(Packet.marshal(SPacketPlayerInfo, UUID.fromString(uuid.value)))
             }
         }
