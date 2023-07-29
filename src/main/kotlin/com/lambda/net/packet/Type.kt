@@ -236,7 +236,6 @@ fun ITextComponent.fromString(str: String): ITextComponent {
 
 fun readTextComponentFrom(inputStream: InputStream): ITextComponent {
     val size = readIntFrom(inputStream)
-    println("size: $size")
     val bs = ByteArray(size)
     val n = inputStream.read(bs)
     if (n != -1) {
