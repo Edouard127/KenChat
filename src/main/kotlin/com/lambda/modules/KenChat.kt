@@ -35,8 +35,6 @@ internal object KenChat : PluginModule(
     init {
         onEnable { doConnect() }
 
-        onDisable { doDisconnect() }
-
         listener<ConnectionEvent.Connect> {
             doConnect()
         }
@@ -48,10 +46,6 @@ internal object KenChat : PluginModule(
             }
             messages.clear()
         }
-
-        safeListener<ConnectionEvent.Disconnect> {
-            doDisconnect()
-        }
     }
 
     fun doConnect() {
@@ -60,7 +54,7 @@ internal object KenChat : PluginModule(
         thread {
             runBlocking {
                 runCatching {
-                    if (socket?.isConnected() == true) return@runCatching
+                    if (socket?.isConnected() == true) return@runBlocking
                     socket = TCPSocket(address, port.toInt()).apply {
                         addHandler(CPacketKeyRequest to ::handleKeyRequest)
                         addHandler(CPacketPlayerInfo to ::handleGetPlayerInfo)
@@ -77,11 +71,6 @@ internal object KenChat : PluginModule(
                 }
             }
         }
-    }
-
-    fun doDisconnect() {
-        socket?.close()
-        MessageSendHelper.sendChatMessage("Disconnected from KenChat server.")
     }
 
     private suspend fun handleKeyRequest(socket: TCPSocket, packet: Packet) {

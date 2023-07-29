@@ -13,8 +13,6 @@ object KenChatCommand : ClientCommand(
         execute {
             enabled = !enabled
             MessageSendHelper.sendChatMessage("KenChat is now ${if (enabled) "enabled" else "disabled"}")
-            if (!enabled) KenChat.doDisconnect()
-            else KenChat.doConnect()
         }
     }
 }
