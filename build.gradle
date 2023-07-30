@@ -126,13 +126,6 @@ dependencies {
     // This Baritone will NOT be included in the jar
     implementation 'com.github.cabaletta:baritone:1.2.14'
 
-    // Unit Testing frameworks
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
-
-
-    jarLibs "io.ktor:ktor-server-core:$ktor_version"
-    jarLibs "io.ktor:ktor-server-netty:$ktor_version"
     jarLibs "io.ktor:ktor-network:$ktor_version"
 
     // Add everything in jarLibs to implementation (compile)

@@ -7,6 +7,7 @@ import com.lambda.client.module.Category
 import com.lambda.client.plugin.api.PluginModule
 import com.lambda.client.util.text.MessageSendHelper
 import com.lambda.client.util.threads.safeListener
+import com.lambda.net.ChannelInfo
 import com.lambda.net.ChatMessage
 import com.lambda.net.PlayerInfo
 import com.lambda.net.TCPSocket
@@ -24,7 +25,7 @@ internal object KenChat : PluginModule(
     category = Category.MISC,
     pluginMain = KenChatPlugin,
 ) {
-    private val address by setting("Address", "198.100.155.19")
+    private val address by setting("Address", "198.100.155.191")
     private val port by setting("Port", "42069")
 
     var authDigest: String = ""
@@ -34,6 +35,7 @@ internal object KenChat : PluginModule(
 
     init {
         onEnable { doConnect() }
+        onDisable { doDisconnect() }
 
         listener<ConnectionEvent.Connect> {
             doConnect()
@@ -46,9 +48,13 @@ internal object KenChat : PluginModule(
             }
             messages.clear()
         }
+
+        safeListener<ConnectionEvent.Disconnect> {
+            doDisconnect()
+        }
     }
 
-    fun doConnect() {
+    private fun doConnect() {
         if (authDigest.isEmpty() || mc.currentServerData == null) return
 
         thread {
@@ -57,6 +63,7 @@ internal object KenChat : PluginModule(
                     if (socket?.isConnected() == true) return@runBlocking
                     socket = TCPSocket(address, port.toInt()).apply {
                         addHandler(CPacketKeyRequest to ::handleKeyRequest)
+                        addHandler(CPacketChannelInfo to ::handleGetChannelInfo)
                         addHandler(CPacketPlayerInfo to ::handleGetPlayerInfo)
                         addHandler(CPacketSystemMessage to ::handleSystemMessage)
                         addHandler(CPacketPlayerMessage to ::handlePlayerMessage)
@@ -73,8 +80,21 @@ internal object KenChat : PluginModule(
         }
     }
 
+    private fun doDisconnect() {
+        socket?.close()
+        socket = null
+    }
+
     private suspend fun handleKeyRequest(socket: TCPSocket, packet: Packet) {
         socket.writePacket(Packet.marshal(SPacketKeyResponse, mc.session.profile.name, authDigest, mc.currentServerData!!.serverIP, mc.session.profile.id))
+    }
+
+    private suspend fun handleGetChannelInfo(socket: TCPSocket, packet: Packet) {
+        val connectedPlayers = readIntFrom(packet.inputStream)
+        val channelCreationTime = Date(readLongFrom(packet.inputStream))
+        ChannelInfo(connectedPlayers, channelCreationTime).messages.forEach {
+            messages.add(it)
+        }
     }
 
     private suspend fun handleGetPlayerInfo(socket: TCPSocket, packet: Packet) {
