@@ -1,7 +1,6 @@
 package com.lambda
 
 import com.lambda.client.plugin.api.Plugin
-import com.lambda.commands.KenChatChannelInfo
 import com.lambda.commands.KenChatCommand
 import com.lambda.commands.KenChatPlayerInfo
 import com.lambda.hud.KenChatTabHud
@@ -12,7 +11,6 @@ internal object KenChatPlugin : Plugin() {
         modules.add(KenChat)
         commands.add(KenChatCommand)
         commands.add(KenChatPlayerInfo)
-        commands.add(KenChatChannelInfo)
         hudElements.add(KenChatTabHud)
     }
 

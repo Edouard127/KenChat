@@ -12,7 +12,6 @@ import com.lambda.net.ChatMessage
 import com.lambda.net.TCPSocket
 import com.lambda.net.packet.*
 import kotlinx.coroutines.runBlocking
-import net.minecraft.client.gui.GuiPlayerTabOverlay
 import net.minecraft.util.text.TextComponentString
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -62,7 +61,7 @@ internal object KenChat : PluginModule(
                     if (socket?.isConnected() == true) return@runBlocking
                     socket = TCPSocket(address, port.toInt()).apply {
                         addHandler(CPacketKeyRequest to ::handleKeyRequest)
-                        addHandler(CPacketChannelInfo to ::handleGetChannelInfo)
+                        addHandler(CPacketUptime to ::handleUptime)
                         addHandler(CPacketPlayerInfo to ::handleGetPlayerInfo)
                         addHandler(CPacketSystemMessage to ::handleSystemMessage)
                         addHandler(CPacketPlayerMessage to ::handlePlayerMessage)
@@ -83,17 +82,31 @@ internal object KenChat : PluginModule(
     private fun doDisconnect() {
         socket?.close()
         socket = null
+        KenChatTabHud.uptime = ""
+        KenChatTabHud.playerArray = emptyArray()
     }
 
     private suspend fun handleKeyRequest(socket: TCPSocket, packet: Packet) {
         socket.writePacket(Packet.marshal(SPacketKeyResponse, mc.session.profile.name, authDigest, mc.currentServerData!!.serverIP, mc.session.profile.id))
     }
 
-    private suspend fun handleGetChannelInfo(socket: TCPSocket, packet: Packet) {
-        val connectedPlayers = readIntFrom(packet.inputStream)
-        val channelCreationTime = Date(readLongFrom(packet.inputStream))
+    private suspend fun handleUptime(socket: TCPSocket, packet: Packet) {
+        val diff = Date().time - Date(readLongFrom(packet.inputStream)).time
+        val years = TimeUnit.MILLISECONDS.toDays(diff) / 365
+        val months = TimeUnit.MILLISECONDS.toDays(diff) / 30 % 12
+        val days = TimeUnit.MILLISECONDS.toDays(diff) % 30
+        val hours = TimeUnit.MILLISECONDS.toHours(diff) % 24
+        val minutes = TimeUnit.MILLISECONDS.toMinutes(diff) % 60
+        val seconds = TimeUnit.MILLISECONDS.toSeconds(diff) % 60
 
-        mc.ingameGUI.chatGUI.printChatMessageWithOptionalDeletion(TextComponentString("====== Channel Info ======\nConnected Players: $connectedPlayers\nChannel Creation Time: $channelCreationTime\n====== End Channel Info ======"), 13756)
+        var string = ""
+        if (years > 0) string += "$years ${if (years == 1L) "year" else "years"} "
+        if (months > 0) string += "$months ${if (months == 1L) "month" else "months"} "
+        if (days > 0) string += "$days ${if (days == 1L) "day" else "days"} "
+        if (hours > 0) string += "$hours ${if (hours == 1L) "hour" else "hours"} "
+        if (minutes > 0) string += "$minutes ${if (minutes == 1L) "minute" else "minutes"} "
+        if (seconds > 0) string += "$seconds ${if (seconds == 1L) "second" else "seconds"} "
+        KenChatTabHud.uptime = string
     }
 
     private suspend fun handleGetPlayerInfo(socket: TCPSocket, packet: Packet) {

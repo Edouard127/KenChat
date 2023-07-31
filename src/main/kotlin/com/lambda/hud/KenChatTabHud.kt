@@ -17,6 +17,7 @@ internal object KenChatTabHud : PluginHudElement(
     pluginMain = KenChatPlugin
 ) {
     var playerArray = arrayOf<String>()
+    var uptime = ""
 
     override fun renderHud(vertexHelper: VertexHelper) {
         super.renderHud(vertexHelper)
@@ -54,6 +55,11 @@ internal object KenChatTabHud : PluginHudElement(
                 l1 = l1.coerceAtLeast(this.mc.fontRenderer.getStringWidth(s1))
             }
 
+            val uptimeList = this.mc.fontRenderer.listFormattedStringToWidth(TextComponentString("Uptime: $uptime").formattedText, width - 50)
+            for (s1 in uptimeList) {
+                l1 = l1.coerceAtLeast(this.mc.fontRenderer.getStringWidth(s1))
+            }
+
             Gui.drawRect(width / 2 - l1 / 2 - 1, k1 - 1, width / 2 + l1 / 2 + 1, k1 + i4 * 9, Int.MIN_VALUE)
 
             for (j4 in 0 until length) {
@@ -85,6 +91,21 @@ internal object KenChatTabHud : PluginHudElement(
             )
 
             for (s3 in stringList) {
+                val j5 = this.mc.fontRenderer.getStringWidth(s3)
+                this.mc.fontRenderer.drawStringWithShadow(s3, (width / 2 - j5 / 2).toFloat(), k1.toFloat(), -1)
+                k1 += this.mc.fontRenderer.FONT_HEIGHT
+            }
+
+            k1 += 1
+            Gui.drawRect(
+                width / 2 - l1 / 2 - 1,
+                k1 - 1,
+                width / 2 + l1 / 2 + 1,
+                k1 + uptimeList.size * this.mc.fontRenderer.FONT_HEIGHT,
+                Int.MIN_VALUE
+            )
+
+            for (s3 in uptimeList) {
                 val j5 = this.mc.fontRenderer.getStringWidth(s3)
                 this.mc.fontRenderer.drawStringWithShadow(s3, (width / 2 - j5 / 2).toFloat(), k1.toFloat(), -1)
                 k1 += this.mc.fontRenderer.FONT_HEIGHT
