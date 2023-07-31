@@ -7,6 +7,7 @@ import java.io.*
 import java.nio.ByteBuffer
 import java.util.*
 import kotlin.Byte
+import kotlin.collections.ArrayList
 
 fun Boolean.writeTo(outputStream: OutputStream): Int {
     val v: Int = if (this) 0x01 else 0x00
@@ -126,12 +127,12 @@ fun Array<*>.writeTo(outputStream: OutputStream): Int {
 
 fun <Type : Any> readArrayFrom(inputStream: InputStream, typeValue: Type): Array<Type> {
     val size = readIntFrom(inputStream)
-    val arr = arrayOfNulls<Any>(size)
+    val arr = java.lang.reflect.Array.newInstance(typeValue::class.java, size) as Array<Type>
     for (i in 0 until size) {
         val v = readFrom(inputStream, typeValue)
         arr[i] = v
     }
-    return arr.requireNoNulls() as Array<Type>
+    return arr
 }
 
 fun Float.writeTo(outputStream: OutputStream): Int {

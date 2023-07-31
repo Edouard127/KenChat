@@ -7,14 +7,13 @@ import com.lambda.client.module.Category
 import com.lambda.client.plugin.api.PluginModule
 import com.lambda.client.util.text.MessageSendHelper
 import com.lambda.client.util.threads.safeListener
-import com.lambda.net.ChannelInfo
+import com.lambda.hud.KenChatTabHud
 import com.lambda.net.ChatMessage
-import com.lambda.net.PlayerInfo
 import com.lambda.net.TCPSocket
 import com.lambda.net.packet.*
 import kotlinx.coroutines.runBlocking
-import net.minecraft.util.text.ITextComponent
-import net.minecraftforge.fml.common.gameevent.TickEvent
+import net.minecraft.client.gui.GuiPlayerTabOverlay
+import net.minecraft.util.text.TextComponentString
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
@@ -29,9 +28,9 @@ internal object KenChat : PluginModule(
     private val port by setting("Port", "42069")
 
     var authDigest: String = ""
+    var authTime: Long = 0
 
     var socket: TCPSocket? = null
-    private val messages = LinkedList<ITextComponent>()
 
     init {
         onEnable { doConnect() }
@@ -41,21 +40,21 @@ internal object KenChat : PluginModule(
             doConnect()
         }
 
-        safeListener<TickEvent.ClientTickEvent> {
-            if (messages.isEmpty()) return@safeListener
-            messages.forEach {
-                mc.ingameGUI.chatGUI.printChatMessage(it)
-            }
-            messages.clear()
-        }
-
         safeListener<ConnectionEvent.Disconnect> {
             doDisconnect()
         }
     }
 
     private fun doConnect() {
-        if (authDigest.isEmpty() || mc.currentServerData == null) return
+        if (mc.currentServerData == null) return
+        if (authDigest.isEmpty()) {
+            MessageSendHelper.sendChatMessage("The auth digest is empty. Please reconnect to the server.")
+            return
+        }
+
+        if (Date().time - authTime > TimeUnit.MINUTES.toMillis(20)) {
+            MessageSendHelper.sendChatMessage("Mojang server hash has expired. Please reconnect to the server.")
+        }
 
         thread {
             runBlocking {
@@ -68,6 +67,7 @@ internal object KenChat : PluginModule(
                         addHandler(CPacketSystemMessage to ::handleSystemMessage)
                         addHandler(CPacketPlayerMessage to ::handlePlayerMessage)
                         addHandler(CPacketPlayerMessageBackoff to ::handleBackoffMessage)
+                        addHandler(CPacketPlayerList to ::handlePlayerList)
                     }
                     socket!!.doDial()
                 }.onSuccess {
@@ -92,9 +92,8 @@ internal object KenChat : PluginModule(
     private suspend fun handleGetChannelInfo(socket: TCPSocket, packet: Packet) {
         val connectedPlayers = readIntFrom(packet.inputStream)
         val channelCreationTime = Date(readLongFrom(packet.inputStream))
-        ChannelInfo(connectedPlayers, channelCreationTime).messages.forEach {
-            messages.add(it)
-        }
+
+        mc.ingameGUI.chatGUI.printChatMessageWithOptionalDeletion(TextComponentString("====== Channel Info ======\nConnected Players: $connectedPlayers\nChannel Creation Time: $channelCreationTime\n====== End Channel Info ======"), 13756)
     }
 
     private suspend fun handleGetPlayerInfo(socket: TCPSocket, packet: Packet) {
@@ -104,24 +103,26 @@ internal object KenChat : PluginModule(
         val lastMessageTime = Date(readLongFrom(packet.inputStream))
         val serverHash = readStringFrom(packet.inputStream)
 
-        val playerInfo = PlayerInfo(hostmask, uuid, loginTime, lastMessageTime, serverHash)
-        playerInfo.messages.forEach {
-            messages.add(it)
-        }
+        mc.ingameGUI.chatGUI.printChatMessageWithOptionalDeletion(TextComponentString("====== Player Info ======\nHostmask: $hostmask\nUUID: $uuid\nLogged at: $loginTime\nLast Message: $lastMessageTime\nServer: $serverHash\n====== End Player Info ======"), 18674)
     }
 
     private suspend fun handleSystemMessage(socket: TCPSocket, packet: Packet) {
         val component = readTextComponentFrom(packet.inputStream)
-        messages.add(ChatMessage(component.unformattedText, "System Message"))
+        mc.ingameGUI.chatGUI.printChatMessage(ChatMessage(component.unformattedText, "System Message"))
     }
 
     private suspend fun handlePlayerMessage(socket: TCPSocket, packet: Packet) {
         val component = readTextComponentFrom(packet.inputStream)
-        messages.add(ChatMessage(component.unformattedText, readStringFrom(packet.inputStream)).setStyle(component.style))
+        mc.currentServerData!!.playerList
+        mc.ingameGUI.chatGUI.printChatMessage(ChatMessage(component.unformattedText, readStringFrom(packet.inputStream)).setStyle(component.style))
     }
 
     private suspend fun handleBackoffMessage(socket: TCPSocket, packet: Packet) {
         val nextMessage = TimeUnit.MILLISECONDS.toSeconds(Date(readLongFrom(packet.inputStream)).time - Date().time)
-        messages.add(ChatMessage("&cPlease wait $nextMessage seconds before sending another message.", "System Message"))
+        mc.ingameGUI.chatGUI.printChatMessage(ChatMessage("&cYou are sending messages too fast! Please wait $nextMessage seconds.", "System Message"))
+    }
+
+    private suspend fun handlePlayerList(socket: TCPSocket, packet: Packet) {
+        KenChatTabHud.playerArray = readArrayFrom(packet.inputStream, String())
     }
 }

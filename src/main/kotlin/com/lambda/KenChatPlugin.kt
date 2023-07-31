@@ -4,6 +4,7 @@ import com.lambda.client.plugin.api.Plugin
 import com.lambda.commands.KenChatChannelInfo
 import com.lambda.commands.KenChatCommand
 import com.lambda.commands.KenChatPlayerInfo
+import com.lambda.hud.KenChatTabHud
 import com.lambda.modules.KenChat
 
 internal object KenChatPlugin : Plugin() {
@@ -12,6 +13,7 @@ internal object KenChatPlugin : Plugin() {
         commands.add(KenChatCommand)
         commands.add(KenChatPlayerInfo)
         commands.add(KenChatChannelInfo)
+        hudElements.add(KenChatTabHud)
     }
 
     override fun onUnload() {
