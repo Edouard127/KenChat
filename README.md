@@ -30,4 +30,6 @@ KenChat is an alternative chat designed for the 2b2t community
 - See the list of online players by pressing Tab
 
 ## Quality of life
-If you are talking on the 2b2t's queue, you can stop the server scrolling by setting the chat settings to `Commands only`
+If you are talking on the 2b2t's queue, you can stop the server scrolling by enabling the PacketCancel module, go to Side: Server, Packet: SPacketChat, and enable it.
+
+If you want to only see the chat from KenChat, you can set the chat settings to `Commands only`
