@@ -74,7 +74,7 @@ internal object KenChat : PluginModule(
                     MessageSendHelper.sendChatMessage("Connected to KenChat server.")
                 }.onFailure {
                     it.printStackTrace()
-                    socket?.close()
+                    doDisconnect()
                 }
             }
         }
