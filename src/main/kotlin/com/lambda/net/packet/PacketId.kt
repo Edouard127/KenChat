@@ -14,5 +14,4 @@ const val CPacketKeepAlive = 8
 const val SPacketKeyResponse = 0
 const val SPacketStartWriting = 1
 const val SPacketPlayerMessage = 2
-const val SPacketPlayerInfo = 3
-const val SPacketKeepAlive = 4
+const val SPacketKeepAlive = 3

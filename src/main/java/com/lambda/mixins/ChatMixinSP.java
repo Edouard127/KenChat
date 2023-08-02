@@ -20,7 +20,7 @@ import static com.lambda.net.packet.PacketIdKt.SPacketPlayerMessage;
 public class ChatMixinSP {
     @Inject(at = @At("HEAD"), method = "sendChatMessage", cancellable = true)
     public void sendMessage(String message, CallbackInfo ci) {
-        if (message.startsWith("/")) {
+        if (message.startsWith("/") && !message.startsWith("/kenchat")) {
             return;
         }
 
