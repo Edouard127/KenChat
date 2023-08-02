@@ -50,7 +50,7 @@ class TCPSocket(private val address: String = "localhost", private val port: Int
     }
 
     fun close() {
-        socket = null
+        socket!!.close()
         recvChannel = null
         sendChannel = null
     }

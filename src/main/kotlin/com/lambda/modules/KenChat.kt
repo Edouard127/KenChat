@@ -6,7 +6,6 @@ import com.lambda.client.event.listener.listener
 import com.lambda.client.module.Category
 import com.lambda.client.plugin.api.PluginModule
 import com.lambda.client.util.text.MessageSendHelper
-import com.lambda.client.util.threads.safeListener
 import com.lambda.hud.KenChatTabHud
 import com.lambda.net.ChatMessage
 import com.lambda.net.TCPSocket
@@ -39,7 +38,7 @@ internal object KenChat : PluginModule(
             doConnect()
         }
 
-        safeListener<ConnectionEvent.Disconnect> {
+        listener<ConnectionEvent.Disconnect> {
             doDisconnect()
         }
     }
@@ -51,7 +50,7 @@ internal object KenChat : PluginModule(
             return
         }
 
-        if (Date().time - authTime > TimeUnit.MINUTES.toMillis(20)) {
+        if (Date().time - authTime > TimeUnit.SECONDS.toMillis(30)) {
             MessageSendHelper.sendChatMessage("Mojang server hash has expired. Please reconnect to the server.")
         }
 
@@ -60,6 +59,7 @@ internal object KenChat : PluginModule(
                 runCatching {
                     if (socket?.isConnected() == true) return@runBlocking
                     socket = TCPSocket(address, port.toInt()).apply {
+                        addHandler(CPacketDisconnect to ::handleDisconnect)
                         addHandler(CPacketKeyRequest to ::handleKeyRequest)
                         addHandler(CPacketUptime to ::handleUptime)
                         addHandler(CPacketPlayerInfo to ::handleGetPlayerInfo)
@@ -67,6 +67,7 @@ internal object KenChat : PluginModule(
                         addHandler(CPacketPlayerMessage to ::handlePlayerMessage)
                         addHandler(CPacketPlayerMessageBackoff to ::handleBackoffMessage)
                         addHandler(CPacketPlayerList to ::handlePlayerList)
+                        addHandler(CPacketKeepAlive to ::handleKeepAlive)
                     }
                     socket!!.doDial()
                 }.onSuccess {
@@ -86,12 +87,20 @@ internal object KenChat : PluginModule(
         KenChatTabHud.playerArray = emptyArray()
     }
 
+    private suspend fun handleDisconnect(socket: TCPSocket, packet: Packet) {
+        val reason = readStringFrom(packet.inputStream)
+        mc.ingameGUI.chatGUI.printChatMessage(ChatMessage("Disconnected from KenChat server: $reason", "System Message"))
+        doDisconnect()
+    }
+
     private suspend fun handleKeyRequest(socket: TCPSocket, packet: Packet) {
         socket.writePacket(Packet.marshal(SPacketKeyResponse, mc.session.profile.name, authDigest, mc.currentServerData!!.serverIP, mc.session.profile.id))
     }
 
     private suspend fun handleUptime(socket: TCPSocket, packet: Packet) {
         val diff = Date().time - Date(readLongFrom(packet.inputStream)).time
+        KenChatTabHud.tps = readDoubleFrom(packet.inputStream)
+
         val years = TimeUnit.MILLISECONDS.toDays(diff) / 365
         val months = TimeUnit.MILLISECONDS.toDays(diff) / 30 % 12
         val days = TimeUnit.MILLISECONDS.toDays(diff) % 30
@@ -126,16 +135,19 @@ internal object KenChat : PluginModule(
 
     private suspend fun handlePlayerMessage(socket: TCPSocket, packet: Packet) {
         val component = readTextComponentFrom(packet.inputStream)
-        mc.currentServerData!!.playerList
         mc.ingameGUI.chatGUI.printChatMessage(ChatMessage(component.unformattedText, readStringFrom(packet.inputStream)).setStyle(component.style))
     }
 
     private suspend fun handleBackoffMessage(socket: TCPSocket, packet: Packet) {
         val nextMessage = TimeUnit.MILLISECONDS.toSeconds(Date(readLongFrom(packet.inputStream)).time - Date().time)
-        mc.ingameGUI.chatGUI.printChatMessage(ChatMessage("&cYou are sending messages too fast! Please wait $nextMessage seconds.", "System Message"))
+        mc.ingameGUI.chatGUI.printChatMessageWithOptionalDeletion(ChatMessage("&cYou have been flagged by the server. Please wait $nextMessage seconds.", "System Message"), 82395)
     }
 
     private suspend fun handlePlayerList(socket: TCPSocket, packet: Packet) {
         KenChatTabHud.playerArray = readArrayFrom(packet.inputStream, String())
+    }
+
+    private suspend fun handleKeepAlive(socket: TCPSocket, packet: Packet) {
+        socket.writePacket(Packet.marshal(SPacketKeepAlive))
     }
 }

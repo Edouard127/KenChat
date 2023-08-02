@@ -2,10 +2,13 @@ package com.lambda.mixins;
 
 import com.lambda.commands.KenChatCommand;
 import com.lambda.modules.KenChat;
+import com.lambda.net.ChatMessage;
 import com.lambda.net.packet.Packet;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.util.text.TextComponentString;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;

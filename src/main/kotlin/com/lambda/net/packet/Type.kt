@@ -159,34 +159,12 @@ fun readFloatFrom(inputStream: InputStream): Float {
 }
 
 fun Double.writeTo(outputStream: OutputStream): Int {
-    val n = this.toRawBits()
-    val v = byteArrayOf(
-        (n shr 56).toByte(),
-        (n shr 48).toByte(),
-        (n shr 40).toByte(),
-        (n shr 32).toByte(),
-        (n shr 24).toByte(),
-        (n shr 16).toByte(),
-        (n shr 8).toByte(),
-        n.toByte()
-    )
-    outputStream.write(v)
-    return v.size
+    return this.toRawBits().writeTo(outputStream)
 }
 
 fun readDoubleFrom(inputStream: InputStream): Double {
-    val bs = ByteArray(8)
-    inputStream.read(bs)
-    return Double.fromBits(
-        (((bs[0].toInt() shl 56)) or
-            ((bs[1].toInt() shl 48)) or
-            ((bs[2].toInt() shl 40)) or
-            ((bs[3].toInt() shl 32)) or
-            ((bs[4].toInt() shl 24)) or
-            ((bs[5].toInt() shl 16)) or
-            ((bs[6].toInt() shl 8)) or
-            (bs[7].toInt())).toLong()
-    )
+    val long = readLongFrom(inputStream)
+    return Double.fromBits(long)
 }
 
 fun Long.writeTo(outputStream: OutputStream): Int {

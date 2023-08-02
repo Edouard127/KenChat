@@ -18,6 +18,7 @@ internal object KenChatTabHud : PluginHudElement(
 ) {
     var playerArray = arrayOf<String>()
     var uptime = ""
+    var tps = 0.0
 
     override fun renderHud(vertexHelper: VertexHelper) {
         super.renderHud(vertexHelper)
@@ -60,6 +61,11 @@ internal object KenChatTabHud : PluginHudElement(
                 l1 = l1.coerceAtLeast(this.mc.fontRenderer.getStringWidth(s1))
             }
 
+            /*val tpsList = this.mc.fontRenderer.listFormattedStringToWidth(TextComponentString("TPS: $tps").formattedText, width - 50)
+            for (s1 in tpsList) {
+                l1 = l1.coerceAtLeast(this.mc.fontRenderer.getStringWidth(s1))
+            }*/
+
             Gui.drawRect(width / 2 - l1 / 2 - 1, k1 - 1, width / 2 + l1 / 2 + 1, k1 + i4 * 9, Int.MIN_VALUE)
 
             for (j4 in 0 until length) {
@@ -96,7 +102,6 @@ internal object KenChatTabHud : PluginHudElement(
                 k1 += this.mc.fontRenderer.FONT_HEIGHT
             }
 
-            k1 += 1
             Gui.drawRect(
                 width / 2 - l1 / 2 - 1,
                 k1 - 1,
@@ -110,6 +115,20 @@ internal object KenChatTabHud : PluginHudElement(
                 this.mc.fontRenderer.drawStringWithShadow(s3, (width / 2 - j5 / 2).toFloat(), k1.toFloat(), -1)
                 k1 += this.mc.fontRenderer.FONT_HEIGHT
             }
+
+            /*Gui.drawRect(
+                width / 2 - l1 / 2 - 1,
+                k1 - 1,
+                width / 2 + l1 / 2 + 1,
+                k1 + tpsList.size * this.mc.fontRenderer.FONT_HEIGHT,
+                Int.MIN_VALUE
+            )
+
+            for (s3 in tpsList) {
+                val j5 = this.mc.fontRenderer.getStringWidth(s3)
+                this.mc.fontRenderer.drawStringWithShadow(s3, (width / 2 - j5 / 2).toFloat(), k1.toFloat(), -1)
+                k1 += this.mc.fontRenderer.FONT_HEIGHT
+            }*/
         }
     }
 }
