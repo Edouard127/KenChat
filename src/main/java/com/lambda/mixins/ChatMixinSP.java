@@ -28,7 +28,7 @@ public class ChatMixinSP {
             return;
         }
 
-        if (KenChatCommand.INSTANCE.getEnabled()) {
+        if (KenChat.INSTANCE.isConnected()) {
             Objects.requireNonNull(KenChat.INSTANCE.getSocket()).javaWrite(Packet.Companion.marshal(SPacketPlayerMessage, new TextComponentString(message)));
             ci.cancel();
         }

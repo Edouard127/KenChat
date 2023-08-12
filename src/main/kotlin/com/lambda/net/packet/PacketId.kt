@@ -1,5 +1,6 @@
 package com.lambda.net.packet
 
+const val ClientVersion = 2007
 
 const val CPacketDisconnect = 0
 const val CPacketKeyRequest = 1

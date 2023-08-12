@@ -6,6 +6,7 @@ import com.lambda.client.event.listener.listener
 import com.lambda.client.module.Category
 import com.lambda.client.plugin.api.PluginModule
 import com.lambda.client.util.text.MessageSendHelper
+import com.lambda.commands.KenChatCommand
 import com.lambda.hud.KenChatTabHud
 import com.lambda.net.ChatMessage
 import com.lambda.net.TCPSocket
@@ -50,8 +51,9 @@ internal object KenChat : PluginModule(
             return
         }
 
-        if (Date().time - authTime > TimeUnit.SECONDS.toMillis(30)) {
+        if (Date().time - authTime > TimeUnit.SECONDS.toMillis(60)) {
             MessageSendHelper.sendChatMessage("Mojang server hash has expired. Please reconnect to the server.")
+            return
         }
 
         thread {
@@ -88,13 +90,12 @@ internal object KenChat : PluginModule(
     }
 
     private suspend fun handleDisconnect(socket: TCPSocket, packet: Packet) {
-        val reason = readStringFrom(packet.inputStream)
-        mc.ingameGUI.chatGUI.printChatMessage(ChatMessage("Disconnected from KenChat server: $reason", "System Message"))
+        mc.ingameGUI.chatGUI.printChatMessage(ChatMessage("Disconnected from KenChat server: ${readStringFrom(packet.inputStream)}", "System Message"))
         doDisconnect()
     }
 
     private suspend fun handleKeyRequest(socket: TCPSocket, packet: Packet) {
-        socket.writePacket(Packet.marshal(SPacketKeyResponse, mc.session.profile.name, authDigest, mc.currentServerData!!.serverIP, mc.session.profile.id))
+        socket.writePacket(Packet.marshal(SPacketKeyResponse, mc.session.profile.name, authDigest, mc.currentServerData!!.serverIP, mc.session.profile.id, ClientVersion))
     }
 
     private suspend fun handleUptime(socket: TCPSocket, packet: Packet) {
@@ -150,4 +151,6 @@ internal object KenChat : PluginModule(
     private suspend fun handleKeepAlive(socket: TCPSocket, packet: Packet) {
         socket.writePacket(Packet.marshal(SPacketKeepAlive))
     }
+
+    fun isConnected() = socket?.isConnected() == true && KenChatCommand.enabled
 }

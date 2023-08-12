@@ -4,6 +4,7 @@ import com.lambda.KenChatPlugin
 import com.lambda.client.plugin.api.PluginHudElement
 import com.lambda.client.util.graphics.VertexHelper
 import com.lambda.client.util.threads.runSafe
+import com.lambda.modules.KenChat
 import net.minecraft.client.gui.Gui
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.GlStateManager
@@ -23,7 +24,7 @@ internal object KenChatTabHud : PluginHudElement(
     override fun renderHud(vertexHelper: VertexHelper) {
         super.renderHud(vertexHelper)
 
-        if (!this.mc.gameSettings.keyBindPlayerList.isKeyDown) return
+        if (!this.mc.gameSettings.keyBindPlayerList.isKeyDown || !KenChat.isConnected()) return
 
         runSafe {
             var maxUsernameWidth = 0
